@@ -10,19 +10,30 @@ if not os.path.exists(LOG_PATH):
 class Logger():
 
     def __init__(self):
-        self.logname = os.path.join(LOG_PATH, "{}.log".format(time.strftime("%Y%m%d")))
+        # 设置日志路径
+        self.log_file_path = os.path.join(LOG_PATH, "{}.log".format(time.strftime("%Y%m%d")))
+        # 创建日志对象
         self.logger = logging.getLogger("log")
+        # 设置全局的日志级别
         self.logger.setLevel(logging.DEBUG)
+        # 定义日志格式
+        self.formater = logging.Formatter('[%(asctime)s][%(filename)s %(lineno)d][%(levelname)s]: %(message)s')
 
-        self.formater = logging.Formatter(
-            '[%(asctime)s][%(filename)s %(lineno)d][%(levelname)s]: %(message)s')
-
-        self.filelogger = logging.FileHandler(self.logname, mode='a', encoding="UTF-8")
-        self.console = logging.StreamHandler()
-        self.console.setLevel(logging.DEBUG)
+        # 创建文件日志的控制器
+        self.filelogger = logging.FileHandler(self.log_file_path, mode='a', encoding="UTF-8")
+        # 设置文件日志级别
         self.filelogger.setLevel(logging.DEBUG)
+        # 设置文件日志格式
         self.filelogger.setFormatter(self.formater)
+
+        # 创建控制台日志的控制器
+        self.console = logging.StreamHandler()
+        # 设置控制台日志的级别
+        self.console.setLevel(logging.DEBUG)
+        # 设置控制台日志的格式
         self.console.setFormatter(self.formater)
+
+        # 控制器加入日志对象
         self.logger.addHandler(self.filelogger)
         self.logger.addHandler(self.console)
 
