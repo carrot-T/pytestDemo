@@ -26,8 +26,7 @@ class TestGetUserInfo():
     @allure.issue("https://www.cnblogs.com/wintest", name="点击，跳转到对应BUG的链接地址")
     @allure.testcase("https://www.cnblogs.com/wintest", name="点击，跳转到对应用例的链接地址")
     @pytest.mark.single
-    @pytest.mark.parametrize("except_result, except_code, except_msg",
-                             api_data["test_get_all_user_info"])
+    @pytest.mark.parametrize("except_result, except_code, except_msg",api_data["test_get_all_user_info"])
     def test_get_all_user_info(self, except_result, except_code, except_msg):
         logger.info("*************** 开始执行用例 ***************")
         step_1()
@@ -46,8 +45,7 @@ class TestGetUserInfo():
     @allure.testcase("https://www.cnblogs.com/wintest", name="点击，跳转到对应用例的链接地址")
     @allure.title("测试数据：【 {username}，{except_result}，{except_code}，{except_msg} 】")
     @pytest.mark.single
-    @pytest.mark.parametrize("username, except_result, except_code, except_msg",
-                             api_data["test_get_get_one_user_info"])
+    @pytest.mark.parametrize("username, except_result, except_code, except_msg",api_data["test_get_get_one_user_info"])
     def test_get_get_one_user_info(self, username, except_result, except_code, except_msg):
         logger.info("*************** 开始执行用例 ***************")
         step_2(username)
