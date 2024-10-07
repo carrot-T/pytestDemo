@@ -1,4 +1,6 @@
-import logging, time, os
+import logging
+import os
+import time
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 # 定义日志文件路径
@@ -7,7 +9,7 @@ if not os.path.exists(LOG_PATH):
     os.mkdir(LOG_PATH)
 
 
-class Logger():
+class Logger:
 
     def __init__(self):
         # 设置日志路径

@@ -13,10 +13,10 @@ from openpyxl import load_workbook
 
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-# 定义日志文件路径
+# 定义数据文件路径
 DATA_PATH = os.path.join(BASE_PATH, "data")
 if not os.path.exists(DATA_PATH):
-    os.mkdir(DATA_PATH)
+        os.mkdir(DATA_PATH)
 
 class MyExcel:
 
@@ -99,13 +99,12 @@ class MyExcel:
             print("行号或者列号，超出了目前最大行号，或者最大列号！！")
             return False
 
-excel=MyExcel()
 
 if __name__ == '__main__':
     # 对自己定义的功能类进行测试
     # 正常功能测试
     excel_file_path = os.path.join(DATA_PATH, "demo.xlsx")
-    excel_data = excel(excel_file_path)  # 加载文件
+    excel_data = MyExcel(excel_file_path)  # 加载文件
     excel_data.select_sheet_by_name()  # 选表单
 
     excel_data.write_data_by_cell(6, 5, "我悄咪咪的进来了！")  # 写入数据

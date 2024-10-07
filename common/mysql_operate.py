@@ -1,11 +1,11 @@
 import pymysql
 import os
-from common.read_data import data
+from common.MyDocument import Document
 from common.logger import logger
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-data_file_path = os.path.join(BASE_PATH, "config", "setting.ini")
-data = data.load_ini(data_file_path)["mysql"]
+config_file_path = os.path.join(BASE_PATH, "config", "setting.ini")
+data = Document.load_ini()["mysql"]
 
 DB_CONF = {
     "host": data["MYSQL_HOST"],
