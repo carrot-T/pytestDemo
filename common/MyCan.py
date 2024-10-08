@@ -88,7 +88,7 @@ def periodic_send_with_modifying_data(bus):
     task.modify_data(msg)
     time.sleep(1)
     print("starting again")
-    task.start()
+    # task.start()
     time.sleep(1)
     task.stop()
     print("done")
