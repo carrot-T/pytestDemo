@@ -1,148 +1,121 @@
-#!/usr/bin/env python
-
-"""
-This example exercises the periodic sending capabilities.
-
-Expects a vcan0 interface:
-
-    python3 -m examples.cyclic
-
-"""
-
-import logging
-import time
+import binascii
+from pprint import pprint
 
 import can
+import cantools
+from ctypes import *
 
-logging.basicConfig(level=logging.INFO)
+def periodic_send(msg):
+    configs = [{'FChannel': 0, 'rate_baudrate': 500, 'data_baudrate': 2000, 'enable_120hm': True, 'is_fd': True},
+               {'FChannel': 1, 'rate_baudrate': 500, 'data_baudrate': 2000, 'enable_120hm': True, 'is_fd': True},
+               {'FChannel': 2, 'rate_baudrate': 500, 'data_baudrate': 2000, 'enable_120hm': True, 'is_fd': True},
+               {'FChannel': 3, 'rate_baudrate': 500, 'data_baudrate': 2000, 'enable_120hm': True, 'is_fd': True}]
+    # hwhandle = can.Bus(interface="libtosun", configs=configs, is_recv_error=False, is_include_tx=True, hwserial=b"")
+    hwhandle = can.interface.Bus(interface="libtosun", configs=configs, is_recv_error=False, is_include_tx=True, hwserial=b"")
+    task = hwhandle.send_periodic(msg,0.02)
 
-can.rc['interface'] = 'virtual'
-can.rc['channel'] = '1'
-can.rc['bitrate'] = 500000
-
-
-def simple_periodic_send(bus):
-    """
-    Sends a message every 20ms with no explicit timeout
-    Sleeps for 2 seconds then stops the task.
-    """
-    print("Starting to send a message every 200ms for 2s")
-    msg = can.Message(
-        arbitration_id=0x123, data=[1, 2, 3, 4, 5, 6], is_extended_id=False
-    )
-    task = bus.send_periodic(msg, 0.20)
-    assert isinstance(task, can.CyclicSendTaskABC)
-    # 接收报文
-    # for msg in bus:
-    #     print(msg.data)
-    received_msg = bus.recv(timeout=1)
-    if received_msg is not None:
-        print(f"Received message: {received_msg}")
-    else:
-        print("No message received within timeout.")
-    time.sleep(2)
+    input('结束Y/N：')
     task.stop()
-    print("stopped cyclic send")
+    hwhandle.shutdown()
+    return task
 
+def create_msg(frame_id,signals,channel=0):
+    db_file_path = "D:\Projects\PycharmProjects\pytestDemo\data\EP32(Internal&E01&E02)_V5.3.1_CANFD_Network_20240305.dbc"
+    db = cantools.db.load_file(db_file_path, database_format='dbc',encoding='gbk')
+    db_msg = db.get_message_by_frame_id(frame_id)
+    signal_tree = db_msg.signal_tree
+    init_msg_data = dict()
+    for signal_name in signal_tree:
+        init_msg_data[signal_name] = (db_msg.get_signal_by_name(signal_name)).initial
+    print('init_msg_data:' + str(init_msg_data))
 
-def limited_periodic_send(bus):
-    """Send using LimitedDurationCyclicSendTaskABC."""
-    print("Starting to send a message every 200ms for 1s")
-    msg = can.Message(
-        arbitration_id=0x12345678, data=[0, 0, 0, 0, 0, 0], is_extended_id=True
-    )
-    task = bus.send_periodic(msg, 0.20, 1, store_task=False)
-    if not isinstance(task, can.LimitedDurationCyclicSendTaskABC):
-        print("This interface doesn't seem to support LimitedDurationCyclicSendTaskABC")
-        task.stop()
-        return
+    update_msg_data = init_msg_data.copy()
+    for key,value in signals.items():
+        update_msg_data[key] = value
+    print('update_msg_data:' + str(update_msg_data))
 
-    time.sleep(2)
-    print("Cyclic send should have stopped as duration expired")
-    # Note the (finished) task will still be tracked by the Bus
-    # unless we pass `store_task=False` to bus.send_periodic
-    # alternatively calling stop removes the task from the bus
-    # task.stop()
+    msg_data_encode = db_msg.encode(update_msg_data)
+    print('msg_data_encode:' + str(msg_data_encode))
+    msg = can.Message(channel=channel, arbitration_id=0x110, is_extended_id=False, is_remote_frame=False, dlc=8, data=msg_data_encode)
 
+    return msg
 
-def periodic_send_with_modifying_data(bus):
-    """Send using ModifiableCyclicTaskABC."""
-    print("Starting to send a message every 200ms. Initial data is four consecutive 1s")
-    msg = can.Message(arbitration_id=0x0CF02200, data=[1, 1, 1, 1])
-    task = bus.send_periodic(msg, 0.20)
-    if not isinstance(task, can.ModifiableCyclicTaskABC):
-        print("This interface doesn't seem to support modification")
-        task.stop()
-        return
-    time.sleep(2)
-    print("Changing data of running task to begin with 99")
-    msg.data[0] = 0x99
-    task.modify_data(msg)
-    time.sleep(2)
+db_file_path = "D:\Projects\PycharmProjects\pytestDemo\data\EP32(Internal&E01&E02)_V5.3.1_CANFD_Network_20240305.dbc"
+db = cantools.db.load_file(db_file_path, database_format='dbc', encoding='gbk')
+db_msg = db.get_message_by_frame_id(0x110)
+pprint('msg_110:' + str(db_msg))
+print('msg_110:' + str(db_msg))
+# # print('header_id:' + str(db_msg.header_id))
+# # print('header_byte_order:' + str(db_msg.header_byte_order))
+# print('frame_id:' + str(hex(db_msg.frame_id)))
+# print('is_extended_frame:' + str(db_msg.is_extended_frame))
+# print('is_fd:' + str(db_msg.is_fd))
+# print('name:' + str(db_msg.name))
+# print('length:' + str(db_msg.length))
+# # print('is_container:' + str(db_msg.is_container))
+# print('signals:' + str(db_msg.signals))
+# print('signal_tree:' + str(db_msg.signal_tree))
+# print('BDCS1_PowerManageMode_ini:' + str(db_msg.get_signal_by_name('BDCS1_PowerManageMode').initial))
+# # print('signal_groups:' + str(db_msg.signal_groups))
+# print('comment:' + str(db_msg.comment))
+# print('send_type:' + str(db_msg.send_type))
+# print('cycle_time:' + str(db_msg.cycle_time))
 
-    task.stop()
-    print("stopped cyclic send")
-    print("Changing data of stopped task to single ff byte")
-    msg.data = bytearray([0xFF])
-    msg.dlc = 1
-    task.modify_data(msg)
-    time.sleep(1)
-    print("starting again")
-    # task.start()
-    time.sleep(1)
-    task.stop()
-    print("done")
-
-
-# Will have to consider how to expose items like this. The socketcan
-# interfaces will continue to support it... but the top level api won't.
-# def test_dual_rate_periodic_send():
-#     """Send a message 10 times at 1ms intervals, then continue to send every 500ms"""
-#     msg = can.Message(arbitration_id=0x123, data=[0, 1, 2, 3, 4, 5])
-#     print("Creating cyclic task to send message 10 times at 1ms, then every 500ms")
-#     task = can.interface.MultiRateCyclicSendTask('vcan0', msg, 10, 0.001, 0.50)
-#     time.sleep(2)
+# # 假设这里是你的byte数据，示例为一个字节串
+# byte_data = b'\x80\x00\x00\x00\x00\x00\x00\x00'
 #
-#     print("Changing data[0] = 0x42")
-#     msg.data[0] = 0x42
-#     task.modify_data(msg)
-#     time.sleep(2)
+# # 将byte数据转换为十六进制字符串表示（可选步骤，方便查看）
+# hex_data = binascii.hexlify(byte_data).decode('utf-8')
+# print("十六进制数据:", hex_data)
 #
-#     task.stop()
-#     print("stopped cyclic send")
 #
-#     time.sleep(2)
-#
-#     task.start()
-#     print("starting again")
-#     time.sleep(2)
-#     task.stop()
-#     print("done")
+# # 解析byte数据为信号值
+# decoded_data = db_msg.decode(byte_data)
+# print(decoded_data)
+# # 输出解析后的信号值
+# for signal_name, signal_value in decoded_data.items():
+#     print(f"{signal_name}: {signal_value}")
+# db_msg.signals.
+# print('decode:' + str(db_msg.decode(b'\x80\x00\x00\x00\x00\x00\x00\x00')))
+
+# d = {
+# 'BDCS1_PowerManageMode': 8,
+# 'BDCS1_PetToLookAfterRmd': 'No Reminder',
+# 'BDCS1_PetToLookAfterFbk': 'OFF',
+# 'BDCS1_PowerMode': 2,
+# 'BDCS1_EnergyManagement': 'Default',
+# 'BDCS1_HighBeamSt': 'Inactive',
+# 'BDCS1_LowBeamSt': 'Inactive',
+# 'BDCS1_AlarmMode': 'No-AntiTheft',
+# 'BDCS1_HazardLampSt': 'Inactive',
+# 'BDCS1_FrontLampSt': 'OFF',
+# 'BDCS1_RightTurnLightSt': 'Inactive',
+# 'BDCS1_LeftTurnLightSt': 'Inactive',
+# 'BDCS1_BacklightStatus': 'Inactive',
+# 'BDCS1_PositionLightSts': 'Inactive',
+# 'BDCS1_FindCarSts': 'Inactive',
+# 'BDCS1_FrontFogLampSt': 'Inactive',
+# 'BDCS1_RearFogLampSt': 'Inactive',
+# 'BDCS1_BrakeLightSts': 'Inactive',
+# 'BDCS1_HazardSwSt': 'Inactive',
+# 'BDCS1_TurnLightSW': 'OFF',
+# 'BDCS1_HighBeamSW': 'OFF',
+# 'BDCS1_HoodAjarSts': 'Closed',
+# 'BDCS1_FMH_SetSts': 'Follow Me Closed',
+# 'BDCS1_TrunkLockSts': 'Unlocked',
+# 'BDCS1_HeadlampHeight_fb': 'Level 0',
+# 'BDCS1_BackupLightSts': 'Inactive',
+# 'BDCS1_OTAauthenSts': 'Default',
+# 'BDCS1_CentralLockFbk': 'Unlocked',
+# 'BDCS1_DRLSt': 'Inactive',
+# 'BDCS1_Backlight_brightness_fb': 0,
+# 'BDCS1_WelcomeLampModFbk': 'No active',
+# 'BDCS1_MsgCounter': 0,
+# 'BDCS1_Checksum': 0
+# }
+# print('decode:' + str(db_msg.encode(d)))
 
 
-def main():
-    """Test different cyclic sending tasks."""
-    reset_msg = can.Message(
-        arbitration_id=0x00, data=[0, 0, 0, 0, 0, 0], is_extended_id=False
-    )
-
-    # this uses the default configuration (for example from environment variables, or a
-    # config file) see https://python-can.readthedocs.io/en/stable/configuration.html
-    with can.Bus() as bus:
-        # bus.send(reset_msg)
-
-        simple_periodic_send(bus)
-        # bus.send(reset_msg)
-        #
-        # limited_periodic_send(bus)
-        #
-        # periodic_send_with_modifying_data(bus)
-
-        # print("Carrying out multirate cyclic test for {} interface".format(interface))
-        # can.rc['interface'] = interface
-        # test_dual_rate_periodic_send()
-    time.sleep(2)
-
-
-if __name__ == "__main__":
-    main()
+# signals_data = {'BDCS1_PowerManageMode': 8, 'BDCS1_PowerMode': 'ON'}
+# msg_110 = create_msg(0x110,signals_data)
+# periodic_send(msg_110)

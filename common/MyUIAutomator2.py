@@ -62,6 +62,6 @@ d = u2.connect()
 
 # 国内包
 #  pip install --upgrade weditor==0.6.4 -i https://pypi.tuna.tsinghua.edu.cn/simple
-#  pip install weditor==0.6.5 -i https://pypi.tuna.tsinghua.edu.cn/simple
+#  pip install libtscanapi -i https://pypi.tuna.tsinghua.edu.cn/simple
 # adb shell /data/local/tmp/atx-agent server --stop
 # adb shell /data/local/tmp/atx-agent server -d
