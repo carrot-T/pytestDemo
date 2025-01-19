@@ -22,29 +22,47 @@ def periodic_send(msg):
 def create_msg(frame_id,signals,channel=0):
     db_file_path = "D:\Projects\PycharmProjects\pytestDemo\data\EP32(Internal&E01&E02)_V5.3.1_CANFD_Network_20240305.dbc"
     db = cantools.db.load_file(db_file_path, database_format='dbc',encoding='gbk')
+
     db_msg = db.get_message_by_frame_id(frame_id)
-    signal_tree = db_msg.signal_tree
-    init_msg_data = dict()
-    for signal_name in signal_tree:
-        init_msg_data[signal_name] = (db_msg.get_signal_by_name(signal_name)).initial
-    print('init_msg_data:' + str(init_msg_data))
+    signal_dict = dict()
+    for index in range(len(db_msg.signals)):
+        # 获取当前报文下的信号索引对象
+        signal = db_msg.signals[index]
+        # 将当前信号名和dbc文件定义的默认值存储到字典中
+        signal_dict[signal.name] = signal.initial
 
-    update_msg_data = init_msg_data.copy()
-    for key,value in signals.items():
-        update_msg_data[key] = value
-    print('update_msg_data:' + str(update_msg_data))
+    # 更新该字典键值对的值
+    signal_dict.update(signals)
 
-    msg_data_encode = db_msg.encode(update_msg_data)
-    print('msg_data_encode:' + str(msg_data_encode))
+    msg_data_encode = db_msg.encode(signal_dict)
+    print('msg_data_encode：' + str(msg_data_encode))
+
+    hex_str = binascii.hexlify(msg_data_encode).decode('utf-8')
+    print('16进制显示：' + hex_str)
+
+    msg_data_decode = db_msg.decode(msg_data_encode)
+    # msg_decode = db_msg.decode(msg_encode)['BDCS1_PowerManageMode']
+    print('msg_data_decode：' + str(msg_data_decode))
+
     msg = can.Message(channel=channel, arbitration_id=0x110, is_extended_id=False, is_remote_frame=False, dlc=8, data=msg_data_encode)
 
     return msg
 
-db_file_path = "D:\Projects\PycharmProjects\pytestDemo\data\EP32(Internal&E01&E02)_V5.3.1_CANFD_Network_20240305.dbc"
-db = cantools.db.load_file(db_file_path, database_format='dbc', encoding='gbk')
-db_msg = db.get_message_by_frame_id(0x110)
-pprint('msg_110:' + str(db_msg))
-print('msg_110:' + str(db_msg))
+# db_file_path = "D:\Projects\PycharmProjects\pytestDemo\data\EP32(Internal&E01&E02)_V5.3.1_CANFD_Network_20240305.dbc"
+# db = cantools.db.load_file(db_file_path, database_format='dbc', encoding='gbk')
+# db_msg = db.get_message_by_frame_id(0x110)
+# print('msg_110:' + str(db_msg))
+# signals_data = {'BDCS1_PowerManageMode': 6, 'BDCS1_PowerMode': 3}
+
+
+
+
+
+cdd_file_path = 'D:\Projects\PycharmProjects\pytestDemo\data\CDCS_V1.5_20211201.cdd'
+db1 = cantools.db.load_file(cdd_file_path, database_format='cdd', encoding='gbk')
+did = db1.dids
+print('did:' + str(did))
+
 # # print('header_id:' + str(db_msg.header_id))
 # # print('header_byte_order:' + str(db_msg.header_byte_order))
 # print('frame_id:' + str(hex(db_msg.frame_id)))

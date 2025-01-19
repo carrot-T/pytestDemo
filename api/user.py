@@ -4,7 +4,7 @@ from common.MyDocument import Document
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 data_file_path = os.path.join(BASE_PATH, "config", "setting.ini")
-api_root_url = Document.load_ini()["host"]["api_root_url"]
+api_root_url = Document.load_ini(data_file_path)["host"]["api_root_url"]
 
 
 class User(RestClient):
