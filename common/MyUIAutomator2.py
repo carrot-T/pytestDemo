@@ -49,6 +49,18 @@ d = u2.connect()
 # d.press('home')
 # d.screenshot('img1.png')
 
+d.app_start("com.ss.android.article.news")
+
+
+
+
+
+
+
+
+
+
+
 
 # ２.设备安装守护进程（成功后多一个ATX小黄车程序）
 # 确保需要安装的手机已经连接上电脑，adb devices列出所有设备列表
