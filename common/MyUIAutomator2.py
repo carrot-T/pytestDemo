@@ -1,15 +1,23 @@
+import os
+
 import uiautomator2 as u2
+from PIL import Image
 from uiautomator2.image import imread, compare_ssim
 
 d = u2.connect()
 
-# 重新截图方法，指定区域截图
+
+# serial = os.getenv('PYTHONPATH')
+#
+# print('环境变量：' + str(serial))
+# # 重新截图方法，指定区域截图
 # def screenshot(deceive, bounds=None ) -> Image.Image:
 #     im = deceive.screenshot()
 #     return im.crop(bounds)
 
 # Id = 'com.hozonauto.account:id/iv_login_qr'
-# ele = d(text='应用中心')
+# ele = d(text='今日头条')
+# ele1 = d(text='华为阅读')
 # ele = d(resourceId=Id)
 
 # d(text='应用中心').click()
@@ -19,10 +27,10 @@ d = u2.connect()
 # info = ele.center()
 # info = ele.click_gone(maxretry=5,interval=1)
 
-# info = ele.screenshot().save('应用中心.jpg')
+# ele.screenshot().save('今日头条.jpg')
+# ele1.screenshot().save('华为阅读.jpg')
 # info = ele.screenshot().save('二维码.jpg')
 # info = d.screenshot("全屏.jpg")
-# screenshot(d,d(text='手动激活').bounds()).save('手动激活.jpg')
 
 # d(text='应用中心').click_exists()
 # xpath1 = '//*[@resource-id="com.hozonauto.netahome:id/rv_all_app"]/android.widget.LinearLayout[5]/android.widget.FrameLayout[1]/android.widget.ImageView[1]'
@@ -40,19 +48,19 @@ d = u2.connect()
 # info = d.shell('ls -alt')
 # info = d.reset_uiautomator()
 # info = d.app_list()
-# img1 = imread('common/二维码.jpg')
-# img2 = imread('common/全屏.jpg')
-# info = compare_ssim(img1,img2)
-#
-# print(info)
+
+img1 = imread('common/今日头条.jpg')
+img2 = imread('common/华为阅读.jpg')
+
+info = compare_ssim(img1,img2)
+print(info)
 
 # d.press('home')
 # d.screenshot('img1.png')
 
-d.app_start("com.ss.android.article.news")
-
-
-
+# d.app_start("com.ss.android.article.news")
+# d.sleep(2)
+# d.press('home')
 
 
 

@@ -9,7 +9,8 @@ hwhandle = can.Bus(interface="libtosun", config=configs, ignore_config=True, is_
 
 msg = can.Message(channel=0,arbitration_id=0x001, is_extended_id=False, is_remote_frame=False, dlc=8, data=[1, 2, 3, 4, 5, 6, 7, 8])
 
-hwhandle.send_periodic(msg, 1)
+task = hwhandle.send_periodic(msg, 1)
+hwhandle.recv(10)
 #
 # pDiagModuleIndex = c_uint8(0)  # 为c类型 传入的为指针，可以随意赋值，运行下方函数后，会对其赋值
 #
